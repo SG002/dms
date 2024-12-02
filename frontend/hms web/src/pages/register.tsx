@@ -9,7 +9,7 @@ import {
   Button, 
   Grid, 
   Link, 
-  MenuItem // Import for the role dropdown
+  MenuItem 
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -36,7 +36,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', {
+      const response = await axios.post('https://dispensary-management-system-pec.onrender.com/api/auth/register', {
         name,
         email,
         phone: mobileNumber,

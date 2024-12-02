@@ -29,7 +29,7 @@ export default function AllDoctors() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/patient/doctors');
+        const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/patient/doctors');
         setDoctors(response.data);
         setLoading(false);
       } catch (error) {

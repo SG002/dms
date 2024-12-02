@@ -61,7 +61,7 @@ export default function Inventory() {
 
   const fetchMedicines = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/inventory');
+      const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/admin/inventory');
       setMedicines(response.data);
       setLoading(false);
     } catch (error) {
@@ -80,7 +80,7 @@ export default function Inventory() {
 
   const handleAddMedicine = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/admin/inventory/add', formData);
+      const response = await axios.post('https://dispensary-management-system-pec.onrender.com/api/admin/inventory/add', formData);
       setMedicines([...medicines, response.data.newMedicine]);
       setOpen(false);
       setFormData({ medicineName: '', quantity: '', expirationDate: '' });
@@ -91,7 +91,7 @@ export default function Inventory() {
 
   const handleDeleteMedicine = async (medicineId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/inventory/${medicineId}`);
+      await axios.delete(`https://dispensary-management-system-pec.onrender.com/api/admin/inventory/${medicineId}`);
       setMedicines(medicines.filter(medicine => medicine._id !== medicineId));
     } catch (error) {
       console.error('Error deleting medicine:', error);
@@ -101,7 +101,7 @@ export default function Inventory() {
   const handleUpdateQuantity = async (medicineId, currentQuantity, adjustment) => {
     try {
       const newQuantity = Math.max(0, currentQuantity + adjustment);
-      const response = await axios.put(`http://localhost:5000/api/admin/inventory/${medicineId}`, {
+      const response = await axios.put(`https://dispensary-management-system-pec.onrender.com/api/admin/inventory/${medicineId}`, {
         quantity: newQuantity
       });
       

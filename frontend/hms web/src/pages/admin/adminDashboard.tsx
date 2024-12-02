@@ -59,7 +59,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/admin/dashboard');
+        const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/admin/dashboard');
         setDashboardData(response.data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

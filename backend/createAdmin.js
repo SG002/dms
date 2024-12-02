@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const User = require('./models/User'); // Adjust the path to your User model
-require('dotenv').config(); // Load environment variables like DB connection
+const User = require('./models/User'); 
+require('dotenv').config(); 
 
 // Connect to the MongoDB database
 const connectDB = async () => {
@@ -22,11 +22,11 @@ const createAdmin = async () => {
   const name = 'Administrator';
   const email = 'admin@ex.com';
   const phone = '0123456789';
-  const role = 'admin'; // Set role to admin
-  const password = 'admin123'; // You can change the default password
+  const role = 'admin'; 
+  const password = 'admin123'; 
 
   try {
-    // Check if admin already exists
+    
     let user = await User.findOne({ email });
     if (user) {
       console.log('Admin user already exists');
@@ -37,7 +37,7 @@ const createAdmin = async () => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create the admin user
+
     user = new User({
       name,
       email,
@@ -53,5 +53,5 @@ const createAdmin = async () => {
   }
 };
 
-// Connect to DB and run the script
+
 connectDB().then(createAdmin).finally(() => mongoose.connection.close());

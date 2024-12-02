@@ -73,7 +73,7 @@ export default function MyBookings() {
       setLoading(true);
       
       try {
-        const response = await axios.get(`http://localhost:5000/api/patient/my-bookings/${patientId}`);
+        const response = await axios.get(`https://dispensary-management-system-pec.onrender.com/api/patient/my-bookings/${patientId}`);
         setBookings(response.data);
       } catch (error) {
         console.error('Error fetching bookings:', error);

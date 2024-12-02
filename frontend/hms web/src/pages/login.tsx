@@ -26,7 +26,7 @@ export default function LoginPage() {
     setError(''); // Clear any previous errors
     
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', { 
+      const response = await axios.post('https://dispensary-management-system-pec.onrender.com/api/auth/login', { 
         email, 
         password 
       });

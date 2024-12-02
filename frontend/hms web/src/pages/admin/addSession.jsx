@@ -81,7 +81,7 @@ const AddSession = () => {
     try {
       setLoading(true);
       console.log('Fetching doctors...');
-      const response = await axios.get('http://localhost:5000/api/admin/doctors');
+      const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/admin/doctors');
       console.log('Doctors response:', response);
       console.log('Response headers:', response.headers);
       
@@ -111,7 +111,7 @@ const AddSession = () => {
 
     try {
       console.log('Fetching sessions for doctor:', doctorId);
-      const response = await axios.get(`/api/admin/sessions/${doctorId}`);
+      const response = await axios.get(`https://dispensary-management-system-pec.onrender.com/api/admin/sessions/${doctorId}`);
       console.log('Sessions response:', response.data);
       
       const sessionsData = Array.isArray(response.data) ? response.data : [];
@@ -141,7 +141,7 @@ const AddSession = () => {
     }
   
     try {
-      const url = `http://localhost:5000/api/admin/sessions`;
+      const url = `https://dispensary-management-system-pec.onrender.com/api/admin/sessions`;
       console.log('Adding new session to:', url);
       
       // Convert date string to ISO format
@@ -175,7 +175,7 @@ const AddSession = () => {
 
   const handleDeleteSession = async (sessionId) => {
     try {
-      await axios.delete(`/api/admin/sessions/${sessionId}`);
+      await axios.delete(`https://dispensary-management-system-pec.onrender.com/api/admin/sessions/${sessionId}`);
       setSessions(prev => prev.filter(session => session._id !== sessionId));
       setError(null);
     } catch (err) {

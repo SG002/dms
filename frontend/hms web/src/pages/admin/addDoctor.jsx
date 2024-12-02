@@ -81,7 +81,7 @@ export default function AdminDashboard() {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/doctors');
+      const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/admin/doctors');
       setDoctors(response.data || []);
       setLoading(false);
     } catch (err) {
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
 
   const handleAddDoctor = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/admin/add-doctor', formData);
+      const response = await axios.post('https://dispensary-management-system-pec.onrender.com/api/admin/add-doctor', formData);
       if (response.data && response.data.doctor) {
         setDoctors(prev => [...prev, response.data.doctor]);
         setOpen(false);
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
 
   const handleDeleteDoctor = async (doctorId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admin/delete-doctor/${doctorId}`);
+      await axios.delete(`https://dispensary-management-system-pec.onrender.com/api/admin/delete-doctor/${doctorId}`);
       setDoctors(prev => prev.filter(doctor => doctor._id !== doctorId));
     } catch (err) {
       console.error('Error deleting doctor:', err);

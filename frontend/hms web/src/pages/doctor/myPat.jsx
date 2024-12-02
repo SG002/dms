@@ -85,7 +85,7 @@ export default function MyPatients() {
     
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/doctor/patients/${doctorId}`,
+        `https://dispensary-management-system-pec.onrender.com/api/doctor/patients/${doctorId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -128,7 +128,7 @@ export default function MyPatients() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/doctor/upload-transcript',
+        'https://dispensary-management-system-pec.onrender.com/api/doctor/upload-transcript',
         formData,
         {
           headers: {
@@ -152,7 +152,7 @@ export default function MyPatients() {
     try {
       const doctorId = localStorage.getItem('userId');
       const response = await axios.get(
-        `http://localhost:5000/api/doctor/transcript/${patientId}/${doctorId}`,
+        `https://dispensary-management-system-pec.onrender.com/api/doctor/transcript/${patientId}/${doctorId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`

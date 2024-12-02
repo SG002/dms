@@ -74,7 +74,7 @@ export default function MyAppointments() {
       setLoading(true);
       
       try {
-        const response = await axios.get(`http://localhost:5000/api/doctor/appointments/${doctorId}`);
+        const response = await axios.get(`https://dispensary-management-system-pec.onrender.com/api/doctor/appointments/${doctorId}`);
         setAppointments(response.data);
       } catch (error) {
         console.error('Error fetching appointments:', error);

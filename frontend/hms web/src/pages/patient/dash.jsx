@@ -79,12 +79,12 @@ export default function PatientDashboard() {
         const token = localStorage.getItem('token');
         
         // Fetch total doctors
-        const doctorsResponse = await axios.get('http://localhost:5000/api/patient/dashboard');
+        const doctorsResponse = await axios.get('https://dispensary-management-system-pec.onrender.com/api/patient/dashboard');
         setTotalDoctors(doctorsResponse.data.totalDoctors);
         
         // Fetch user name
         const userResponse = await axios.get(
-          `http://localhost:5000/api/patient/user/${userId}`,
+          `https://dispensary-management-system-pec.onrender.com/api/patient/user/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -95,7 +95,7 @@ export default function PatientDashboard() {
         
         // Fetch transcripts
         const transcriptsResponse = await axios.get(
-          `http://localhost:5000/api/patient/transcripts/${userId}`,
+          `https://dispensary-management-system-pec.onrender.com/api/patient/transcripts/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`

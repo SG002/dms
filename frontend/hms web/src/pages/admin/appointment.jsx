@@ -55,7 +55,7 @@ const Appointments = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await axios.get('/api/admin/appointments');
+        const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/admin/appointments');
         setAppointments(response.data);
         setLoading(false);
       } catch (error) {

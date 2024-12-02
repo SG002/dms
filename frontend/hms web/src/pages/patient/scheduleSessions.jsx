@@ -75,7 +75,7 @@ export default function ScheduleSessions() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/patient/doctors');
+        const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/patient/doctors');
         setDoctors(response.data);
         setLoading(false);
       } catch (error) {
@@ -92,7 +92,7 @@ export default function ScheduleSessions() {
   const fetchSessions = async (doctorId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/patient/sessions/${doctorId}`);
+      const response = await axios.get(`https://dispensary-management-system-pec.onrender.com/api/patient/sessions/${doctorId}`);
       setSessions(response.data);
     } catch (error) {
       console.error('Error fetching sessions:', error);
