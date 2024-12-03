@@ -173,36 +173,39 @@ router.post('/cancel-booking/:sessionId', async (req, res) => {
   }
 });
 
+
 // Get all transcripts for a patient
 router.get('/transcripts/:userId', async (req, res) => {
   try {
     const transcripts = await Transcript.find({ 
       patientId: req.params.userId,
-      // Add status check to ensure document is approved/published
-      status: 'published'
+      status: { $in: ['published', undefined] } 
     })
       .sort({ createdAt: -1 })
       .populate('doctorId', 'name')
-      .select('imageUrl createdAt type title'); // Add type and title fields
+      .select('imageUrl createdAt type title doctorId');
 
     if (!transcripts) {
       return res.status(404).json({ message: 'No records found' });
     }
 
-    // Format the response with more detailed information
+    // Format the response
     const formattedTranscripts = transcripts.map(transcript => ({
       _id: transcript._id,
       doctorName: transcript.doctorId?.name || 'Unknown Doctor',
-      documentUrl: transcript.imageUrl,
-      type: transcript.type, // 'medical_record' or 'transcript'
-      title: transcript.title,
+      documentUrl: transcript.imageUrl, 
+      type: transcript.type || 'Medical Document',
+      title: transcript.title || 'Medical Record',
       createdAt: transcript.createdAt
     }));
 
     res.json(formattedTranscripts);
   } catch (error) {
     console.error('Error fetching records:', error);
-    res.status(500).json({ message: 'Error fetching medical records and transcripts' });
+    res.status(500).json({ 
+      message: 'Error fetching medical records and transcripts',
+      error: error.message 
+    });
   }
 });
 
@@ -211,7 +214,7 @@ router.get('/transcript/:transcriptId', async (req, res) => {
   try {
     const transcript = await Transcript.findOne({
       _id: req.params.transcriptId,
-      patientId: req.params.userId, // Changed from req.user.id to req.params.userId
+      patientId: req.params.userId, 
       status: 'published'
     }).populate('doctorId', 'name');
 

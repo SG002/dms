@@ -224,26 +224,32 @@ export default function PatientDashboard() {
                   <Grid container spacing={2}>
                     {transcripts.map((transcript) => (
                       <Grid item xs={12} sm={6} md={4} key={transcript._id}>
-                        <Card>
-                          <CardContent>
-                            <Typography variant="h6" gutterBottom>
-                              Dr. {transcript.doctorName}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Date: {new Date(transcript.createdAt).toLocaleDateString()}
-                            </Typography>
-                          </CardContent>
-                          <CardActions>
-                            <Button
-                              startIcon={<DescriptionIcon />}
-                              onClick={() => handleViewTranscript(transcript)}
-                              fullWidth
-                            >
-                              View Transcript
-                            </Button>
-                          </CardActions>
-                        </Card>
-                      </Grid>
+                      <Card>
+                        <CardContent>
+                          <Typography variant="h6" gutterBottom>
+                            {transcript.title || 'Medical Transcript'} 
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Doctor: {transcript.doctorName}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Date: {new Date(transcript.createdAt).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Type: {transcript.type || 'Document'} 
+                          </Typography>
+                        </CardContent>
+                        <CardActions>
+                          <Button
+                            startIcon={<DescriptionIcon />}
+                            onClick={() => handleViewTranscript(transcript)}
+                            fullWidth
+                          >
+                            View Document
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
                     ))}
                   </Grid>
                 )}
@@ -255,30 +261,50 @@ export default function PatientDashboard() {
 
       {/* View Transcript Dialog */}
       <Dialog
-        open={viewDialogOpen}
-        onClose={() => setViewDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          Medical Transcript
-          <Typography variant="subtitle2" color="text.secondary">
-            {selectedTranscript && `Dr. ${selectedTranscript.doctorName} - ${new Date(selectedTranscript.createdAt).toLocaleDateString()}`}
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          {selectedTranscript && (
-            <img
-              src={selectedTranscript.transcriptUrl}
-              alt="Medical Transcript"
-              style={{ width: '100%', height: 'auto' }}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+  open={viewDialogOpen}
+  onClose={() => setViewDialogOpen(false)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogTitle>
+    {selectedTranscript?.title || 'Medical Document'}
+    <Typography variant="subtitle2" color="text.secondary">
+      {selectedTranscript && `Dr. ${selectedTranscript.doctorName} - ${new Date(selectedTranscript.createdAt).toLocaleDateString()}`}
+    </Typography>
+  </DialogTitle>
+  <DialogContent>
+    {selectedTranscript && (
+      selectedTranscript.documentUrl?.toLowerCase().endsWith('.pdf') ? (
+        <iframe
+          src={selectedTranscript.documentUrl}
+          width="100%"
+          height="600px"
+          title="PDF Viewer"
+          style={{ border: 'none' }}
+        />
+      ) : (
+        <img
+          src={selectedTranscript.documentUrl}
+          alt="Medical Document"
+          style={{ width: '100%', height: 'auto' }}
+          onError={(e) => {
+            e.target.onerror = null;
+            showSnackbar('Error loading image', 'error');
+          }}
+        />
+      )
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button 
+      onClick={() => window.open(selectedTranscript?.documentUrl, '_blank')}
+      color="primary"
+    >
+      Open in New Tab
+    </Button>
+    <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+  </DialogActions>
+</Dialog>
 
       <Snackbar
         open={snackbar.open}
