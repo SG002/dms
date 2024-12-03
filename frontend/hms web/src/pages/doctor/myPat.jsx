@@ -106,47 +106,93 @@ export default function MyPatients() {
     }
   };
 
-  const handleFileSelect = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
+  // const handleFileSelect = (event) => {
+  //   setSelectedFile(event.target.files[0]);
+  // };
 
   const handleUploadClick = (patientId) => {
     setSelectedPatientId(patientId);
     setUploadDialogOpen(true);
   };
 
-  const handleUploadSubmit = async () => {
-    if (!selectedFile) {
-      showSnackbar('Please select a file first', 'error');
+  // ... existing imports ...
+
+const handleFileSelect = (event) => {
+  const file = event.target.files[0];
+  // Add file validation
+  if (file) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!allowedTypes.includes(file.type)) {
+      showSnackbar('Please select a valid image (JPEG, PNG) or PDF file', 'error');
+      event.target.value = ''; // Reset file input
       return;
     }
 
-    const formData = new FormData();
-    formData.append('transcript', selectedFile);
-    formData.append('patientId', selectedPatientId);
-    formData.append('doctorId', localStorage.getItem('userId'));
+    if (file.size > maxSize) {
+      showSnackbar('File size should be less than 5MB', 'error');
+      event.target.value = ''; // Reset file input
+      return;
+    }
+  }
+  setSelectedFile(file);
+};
 
-    try {
-      const response = await axios.post(
-        'https://dispensary-management-system-pec.onrender.com/api/doctor/upload-transcript',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
+const handleUploadSubmit = async () => {
+  if (!selectedFile) {
+    showSnackbar('Please select a file first', 'error');
+    return;
+  }
 
-      showSnackbar('Transcript uploaded successfully', 'success');
+  const formData = new FormData();
+  formData.append('transcript', selectedFile);
+  formData.append('patientId', selectedPatientId);
+  formData.append('doctorId', localStorage.getItem('userId'));
+
+  try {
+    setLoading(true); // Add loading state while uploading
+    const token = localStorage.getItem('token');
+    
+    const response = await axios.post(
+      'https://dispensary-management-system-pec.onrender.com/api/doctor/upload-transcript',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        },
+        // Add timeout and larger size limit
+        timeout: 30000, // 30 seconds
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
+      }
+    );
+
+    showSnackbar('Transcript uploaded successfully', 'success');
     setUploadDialogOpen(false);
     setSelectedFile(null);
   } catch (error) {
     console.error('Error uploading transcript:', error);
-    const errorMessage = error.response?.data?.message || 'Error uploading transcript. Please try again.';
+    let errorMessage = 'Error uploading transcript. Please try again.';
+    
+    if (error.response) {
+      // Server responded with error
+      errorMessage = error.response.data?.message || errorMessage;
+    } else if (error.request) {
+      // Request made but no response
+      errorMessage = 'Server not responding. Please try again later.';
+    } else {
+      // Request setup error
+      errorMessage = 'Error preparing upload. Please try again.';
+    }
+    
     showSnackbar(errorMessage, 'error');
+  } finally {
+    setLoading(false);
   }
 };
+
 
   const handleViewTranscript = async (patientId) => {
     try {
