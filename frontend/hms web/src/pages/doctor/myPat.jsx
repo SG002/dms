@@ -145,46 +145,65 @@ const handleUploadSubmit = async () => {
     return;
   }
 
+  // Create FormData and log its contents
   const formData = new FormData();
-  formData.append('transcript', selectedFile);
+  formData.append('file', selectedFile); // Changed from 'transcript' to 'file'
   formData.append('patientId', selectedPatientId);
   formData.append('doctorId', localStorage.getItem('userId'));
 
+  // Log the data being sent
+  console.log('File:', selectedFile);
+  console.log('Patient ID:', selectedPatientId);
+  console.log('Doctor ID:', localStorage.getItem('userId'));
+
   try {
-    setLoading(true); // Add loading state while uploading
+    setLoading(true);
     const token = localStorage.getItem('token');
     
+    // Log the request headers
+    console.log('Token:', token);
+
     const response = await axios.post(
       'https://dispensary-management-system-pec.onrender.com/api/doctor/upload-transcript',
       formData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'Accept': 'application/json'
         },
-        // Add timeout and larger size limit
-        timeout: 30000, // 30 seconds
+        timeout: 60000, // Increased timeout to 60 seconds
         maxContentLength: Infinity,
-        maxBodyLength: Infinity
+        maxBodyLength: Infinity,
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log('Upload progress:', percentCompleted, '%');
+        }
       }
     );
 
+    console.log('Upload response:', response.data);
     showSnackbar('Transcript uploaded successfully', 'success');
     setUploadDialogOpen(false);
     setSelectedFile(null);
+    
+    // Refresh the patient data after successful upload
+    await fetchPatients();
+    
   } catch (error) {
-    console.error('Error uploading transcript:', error);
+    console.error('Full error object:', error);
+    console.error('Error response data:', error.response?.data);
+    console.error('Error response status:', error.response?.status);
+    console.error('Error response headers:', error.response?.headers);
+
     let errorMessage = 'Error uploading transcript. Please try again.';
     
-    if (error.response) {
-      // Server responded with error
-      errorMessage = error.response.data?.message || errorMessage;
-    } else if (error.request) {
-      // Request made but no response
-      errorMessage = 'Server not responding. Please try again later.';
-    } else {
-      // Request setup error
-      errorMessage = 'Error preparing upload. Please try again.';
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.status === 500) {
+      errorMessage = 'Server error. Please try again later or contact support.';
+    } else if (error.code === 'ECONNABORTED') {
+      errorMessage = 'Upload timed out. Please try again with a smaller file.';
     }
     
     showSnackbar(errorMessage, 'error');
@@ -368,13 +387,26 @@ const handleUploadSubmit = async () => {
       <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)}>
         <DialogTitle>Upload Medical Transcript</DialogTitle>
         <DialogContent>
-          <input
-            type="file"
-            accept="image/*,.pdf"
-            onChange={handleFileSelect}
-            style={{ margin: '20px 0' }}
-          />
-        </DialogContent>
+  <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+    Please select an image (JPEG, PNG) or PDF file less than 5MB
+  </Typography>
+  <input
+    type="file"
+    accept=".jpg,.jpeg,.png,.pdf"
+    onChange={handleFileSelect}
+    style={{ margin: '20px 0' }}
+  />
+  {selectedFile && (
+    <Typography variant="body2" color="primary">
+      Selected file: {selectedFile.name}
+    </Typography>
+  )}
+  {loading && (
+    <Box display="flex" justifyContent="center" mt={2}>
+      <CircularProgress size={24} />
+    </Box>
+  )}
+</DialogContent>
         <DialogActions>
           <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleUploadSubmit} variant="contained" color="primary">
