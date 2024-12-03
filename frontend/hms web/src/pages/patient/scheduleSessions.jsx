@@ -144,9 +144,9 @@ export default function ScheduleSessions() {
     }
   
     try {
-      const response = await axios.post('http://localhost:5000/api/patient/book-session', {
-        sessionId: sessionId.toString(), // Ensure it's a string
-        patientId: patientId.toString()  // Ensure it's a string
+      const response = await axios.post('https://dispensary-management-system-pec.onrender.com/api/patient/book-session', {
+        sessionId: sessionId.toString(), 
+        patientId: patientId.toString() 
       }, {
         headers: {
           'Content-Type': 'application/json'
