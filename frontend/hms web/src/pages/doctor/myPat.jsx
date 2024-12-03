@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Box,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
   Drawer,
   AppBar,
   CssBaseline,
@@ -61,6 +65,7 @@ export default function MyPatients() {
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState(null);
+  const [patientTranscripts, setPatientTranscripts] = useState([]);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -213,25 +218,25 @@ const handleUploadSubmit = async () => {
 };
 
 
-  const handleViewTranscript = async (patientId) => {
-    try {
-      const doctorId = localStorage.getItem('userId');
-      const response = await axios.get(
-        `https://dispensary-management-system-pec.onrender.com/api/doctor/transcript/${patientId}/${doctorId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+const handleViewTranscript = async (patientId) => {
+  try {
+    const doctorId = localStorage.getItem('userId');
+    const response = await axios.get(
+      `https://dispensary-management-system-pec.onrender.com/api/doctor/transcripts/${patientId}/${doctorId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         }
-      );
-      
-      setCurrentTranscript(response.data.transcriptUrl);
-      setViewDialogOpen(true);
-    } catch (error) {
-      console.error('Error fetching transcript:', error);
-      showSnackbar('Error loading transcript. Please try again.', 'error');
-    }
-  };
+      }
+    );
+    
+    setPatientTranscripts(response.data);
+    setViewDialogOpen(true);
+  } catch (error) {
+    console.error('Error fetching transcripts:', error);
+    showSnackbar('Error loading transcripts. Please try again.', 'error');
+  }
+};
 
   const showSnackbar = (message, severity = 'info') => {
     setSnackbar({
@@ -416,28 +421,71 @@ const handleUploadSubmit = async () => {
       </Dialog>
 
       {/* View Dialog */}
-      <Dialog
-        open={viewDialogOpen}
-        onClose={() => setViewDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Medical Transcript</DialogTitle>
-        <DialogContent>
-          {currentTranscript ? (
-            <img
-              src={currentTranscript}
-              alt="Medical Transcript"
-              style={{ width: '100%', height: 'auto' }}
-            />
-          ) : (
-            <Typography>No transcript available</Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+<Dialog
+  open={viewDialogOpen}
+  onClose={() => setViewDialogOpen(false)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogTitle>Medical Transcripts</DialogTitle>
+  <DialogContent>
+    {patientTranscripts.length > 0 ? (
+      <Grid container spacing={2}>
+        {patientTranscripts.map((transcript, index) => (
+          <Grid item xs={12} key={transcript._id}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  {transcript.title || `Medical Record ${index + 1}`}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Date: {new Date(transcript.createdAt).toLocaleDateString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Type: {transcript.type || 'Document'}
+                </Typography>
+              </CardContent>
+              <CardContent>
+                {transcript.documentUrl?.toLowerCase().endsWith('.pdf') ? (
+                  <iframe
+                    src={transcript.documentUrl}
+                    width="100%"
+                    height="300px"
+                    title={`PDF Document ${index + 1}`}
+                    style={{ border: 'none' }}
+                  />
+                ) : (
+                  <img
+                    src={transcript.documentUrl}
+                    alt={`Medical Document ${index + 1}`}
+                    style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain' }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'path/to/fallback/image.png'; // Add a fallback image
+                    }}
+                  />
+                )}
+              </CardContent>
+              <CardActions>
+                <Button
+                  onClick={() => window.open(transcript.documentUrl, '_blank')}
+                  color="primary"
+                >
+                  Open in New Tab
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    ) : (
+      <Typography>No transcripts available</Typography>
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+  </DialogActions>
+</Dialog>
 
       <Snackbar
         open={snackbar.open}

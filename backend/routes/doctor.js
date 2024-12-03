@@ -140,24 +140,42 @@ router.post('/upload-transcript', upload.single('file'), async (req, res) => {
 // ... rest of the code ...
 
 // Get transcripts for a specific patient
-router.get('/transcript/:patientId/:doctorId', async (req, res) => {  // Changed route pattern
+// Get all transcripts for a specific patient
+router.get('/transcripts/:patientId/:doctorId', async (req, res) => {
   try {
-    const transcripts = await Transcript.find({
-      patientId: req.params.patientId,
-      doctorId: req.params.doctorId
-    }).sort({ createdAt: -1 });
+    const { patientId, doctorId } = req.params;
 
-    if (!transcripts || transcripts.length === 0) {  // Added null check
+    // Find all transcripts for this patient-doctor pair
+    const transcripts = await Transcript.find({
+      patientId: patientId,
+      doctorId: doctorId,
+      status: { $in: ['published', undefined] }
+    })
+    .sort({ createdAt: -1 }) // Sort by newest first
+    .select('imageUrl createdAt type title status');
+
+    if (!transcripts || transcripts.length === 0) {
       return res.status(404).json({ message: 'No transcripts found' });
     }
 
-    res.json({
-      transcriptUrl: transcripts[0].imageUrl,
-      createdAt: transcripts[0].createdAt
-    });
+    // Format the response
+    const formattedTranscripts = transcripts.map(transcript => ({
+      _id: transcript._id,
+      documentUrl: transcript.imageUrl,
+      type: transcript.type || 'Medical Document',
+      title: transcript.title || 'Medical Record',
+      createdAt: transcript.createdAt,
+      status: transcript.status || 'published'
+    }));
+
+    res.json(formattedTranscripts);
+
   } catch (error) {
-    console.error('Error fetching transcript:', error);
-    res.status(500).json({ message: 'Error fetching transcript' });
+    console.error('Error fetching transcripts:', error);
+    res.status(500).json({ 
+      message: 'Error fetching transcripts',
+      error: error.message 
+    });
   }
 });
 
