@@ -11,12 +11,17 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'medical_transcripts',
-    allowed_formats: ['jpg', 'png', 'pdf', 'jpeg'],
-    transformation: [{ width: 1000, crop: "limit" }]
+    folder: 'transcripts',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'pdf'],
+    resource_type: 'auto'
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
 
 module.exports = { cloudinary, upload };

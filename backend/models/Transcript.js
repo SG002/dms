@@ -8,19 +8,22 @@ const transcriptSchema = new mongoose.Schema({
   },
   doctorId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Doctor',
+    ref: 'User',
     required: true
   },
   imageUrl: {
     type: String,
     required: true
   },
-  type: { type: String, enum: ['medical_record', 'transcript'], required: true },
-  title: { type: String, required: true },
-  status: { type: String, enum: ['draft', 'published'], default: 'published' },
   cloudinaryId: {
     type: String,
     required: true
+  },
+  fileName: {
+    type: String
+  },
+  fileType: {
+    type: String
   },
   createdAt: {
     type: Date,

@@ -69,38 +69,75 @@ router.get('/patients/:doctorId', async (req, res) => {
   }
 });
 
-router.post('/upload-transcript', upload.single('transcript'), async (req, res) => {
+// ... existing code ...
+
+router.post('/upload-transcript', upload.single('file'), async (req, res) => {
   try {
+    // Check if file exists
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    // Validate request body
+    if (!req.body.patientId || !req.body.doctorId) {
+      // If there's an uploaded file, delete it from Cloudinary
+      if (req.file.filename) {
+        await cloudinary.uploader.destroy(req.file.filename);
+      }
+      return res.status(400).json({ message: 'Patient ID and Doctor ID are required' });
+    }
+
+    // Log the received data
+    console.log('Received file:', req.file);
+    console.log('Received data:', req.body);
+
+    // Create new transcript
     const newTranscript = new Transcript({
       patientId: req.body.patientId,
       doctorId: req.body.doctorId,
       imageUrl: req.file.path,
-      cloudinaryId: req.file.filename
+      cloudinaryId: req.file.filename,
+      fileType: req.file.mimetype,
+      fileName: req.file.originalname
     });
 
-    await newTranscript.save();
+    // Save to database
+    const savedTranscript = await newTranscript.save();
+    console.log('Saved transcript:', savedTranscript);
 
+    // Send success response
     res.status(201).json({
       message: 'Transcript uploaded successfully',
       transcript: {
-        _id: newTranscript._id,
-        imageUrl: newTranscript.imageUrl,
-        createdAt: newTranscript.createdAt
+        _id: savedTranscript._id,
+        imageUrl: savedTranscript.imageUrl,
+        createdAt: savedTranscript.createdAt,
+        fileName: savedTranscript.fileName
       }
     });
+
   } catch (error) {
-    console.error('Error uploading transcript:', error);
-    // If there's an error, delete the uploaded image from Cloudinary
+    console.error('Error in upload-transcript:', error);
+    
+    // Clean up: Delete file from Cloudinary if there was an error
     if (req.file && req.file.filename) {
-      await cloudinary.uploader.destroy(req.file.filename);
+      try {
+        await cloudinary.uploader.destroy(req.file.filename);
+      } catch (cloudinaryError) {
+        console.error('Error deleting file from Cloudinary:', cloudinaryError);
+      }
     }
-    res.status(500).json({ message: 'Error uploading transcript' });
+
+    // Send appropriate error response
+    res.status(500).json({ 
+      message: 'Error uploading transcript',
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
+
+// ... rest of the code ...
 
 // Get transcripts for a specific patient
 router.get('/transcript/:patientId/:doctorId', async (req, res) => {  // Changed route pattern
