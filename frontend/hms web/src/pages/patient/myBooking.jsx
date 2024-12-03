@@ -91,12 +91,12 @@ export default function MyBookings() {
   const patientId = localStorage.getItem('userId');
   
   try {
-    await axios.post(`http://localhost:5000/api/patient/cancel-booking/${sessionId}`, {
+    await axios.post(`https://dispensary-management-system-pec.onrender.com/api/patient/cancel-booking/${sessionId}`, {
       patientId
     });
     
     // Refresh the bookings list after cancellation
-    const response = await axios.get(`http://localhost:5000/api/patient/my-bookings/${patientId}`);
+    const response = await axios.get(`https://dispensary-management-system-pec.onrender.com/api/patient/my-bookings/${patientId}`);
     setBookings(response.data);
     showSnackbar('Booking cancelled successfully', 'success');
   } catch (error) {
