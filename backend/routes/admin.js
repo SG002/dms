@@ -243,284 +243,294 @@ router.post('/sessions', async (req, res) => {
     }
   });
 
-  // Add these routes to your admin.js file
+  // Get analytics data
+  router.get('/analytics', async (req, res) => {
+    try {
+      // Get total counts
+      const totalAppointments = await Appointment.countDocuments();
+      const totalMedicines = await Inventory.countDocuments();
 
-// Get analytics data
-router.get('/analytics', async (req, res) => {
-  try {
-    // Get total counts
-    const totalAppointments = await Appointment.countDocuments();
-    const totalMedicines = await Inventory.countDocuments();
+      // Get today's appointments
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+      const todayAppointments = await Appointment.countDocuments({
+        date: { $gte: startOfDay, $lt: endOfDay }
+      });
 
-    // Get today's appointments
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-    const todayAppointments = await Appointment.countDocuments({
-      date: { $gte: startOfDay, $lt: endOfDay }
-    });
+      // Get appointments by date (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const appointmentTrends = await Appointment.aggregate([
+        {
+          $match: {
+            date: { $gte: sevenDaysAgo }
+          }
+        },
+        {
+          $group: {
+            _id: { 
+              $dateToString: { 
+                format: "%Y-%m-%d", 
+                date: "$date",
+                timezone: "UTC" 
+              } 
+            },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { '_id': 1 } }
+      ]);
 
-    // Get appointments by date (last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const appointmentTrends = await Appointment.aggregate([
-      {
-        $match: {
-          date: { $gte: sevenDaysAgo }
+      // Get appointment distribution by time
+      const appointmentsByTime = await Appointment.aggregate([
+        {
+          $group: {
+            _id: { $ifNull: ["$time", "Unspecified"] },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { '_id': 1 } }
+      ]);
+
+      // Get low stock medicines (less than 10)
+      const lowStockCount = await Inventory.countDocuments({ quantity: { $lt: 10 } });
+
+      // Get expiring medicines (within next 30 days)
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      const expiringCount = await Inventory.countDocuments({
+        expirationDate: { 
+          $gte: new Date(), 
+          $lte: thirtyDaysFromNow 
         }
-      },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { '_id': 1 } }
-    ]);
+      });
 
-    // Get appointment distribution by time
-    const appointmentsByTime = await Appointment.aggregate([
-      {
-        $group: {
-          _id: '$time',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { '_id': 1 } }
-    ]);
-
-    // Get low stock medicines (less than 10)
-    const lowStockCount = await Inventory.countDocuments({ quantity: { $lt: 10 } });
-
-    // Get expiring medicines (within next 30 days)
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    const expiringCount = await Inventory.countDocuments({
-      expirationDate: { 
-        $gte: new Date(), 
-        $lte: thirtyDaysFromNow 
-      }
-    });
-
-    // Get medicines by expiration status
-    const medicinesByExpiration = await Inventory.aggregate([
-      {
-        $group: {
-          _id: {
-            $cond: {
-              if: { $lt: ['$expirationDate', new Date()] },
-              then: 'Expired',
-              else: {
-                $cond: {
-                  if: { $lt: ['$expirationDate', thirtyDaysFromNow] },
-                  then: 'Expiring Soon',
-                  else: 'Valid'
+      // Get medicines by expiration status
+      const medicinesByExpiration = await Inventory.aggregate([
+        {
+          $group: {
+            _id: {
+              $cond: {
+                if: { $lt: ['$expirationDate', new Date()] },
+                then: 'Expired',
+                else: {
+                  $cond: {
+                    if: { $lt: ['$expirationDate', thirtyDaysFromNow] },
+                    then: 'Expiring Soon',
+                    else: 'Valid'
+                  }
                 }
               }
-            }
-          },
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-
-    const appointmentsBySpecialty = await Appointment.aggregate([
-      {
-        $lookup: {
-          from: 'doctors',
-          localField: 'doctor',
-          foreignField: '_id',
-          as: 'doctorInfo'
-        }
-      },
-      {
-        $unwind: '$doctorInfo'
-      },
-      {
-        $group: {
-          _id: '$doctorInfo.specialty',
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $sort: { count: -1 }
-      }
-    ]);
-
-    const doctorWorkload = await Appointment.aggregate([
-      {
-        $lookup: {
-          from: 'doctors',
-          localField: 'doctor',
-          foreignField: '_id',
-          as: 'doctorInfo'
-        }
-      },
-      {
-        $unwind: '$doctorInfo'
-      },
-      {
-        $group: {
-          _id: {
-            doctorId: '$doctor',
-            doctorName: '$doctorInfo.name',
-            specialty: '$doctorInfo.specialty'
-          },
-          appointmentCount: { $sum: 1 }
-        }
-      },
-      {
-        $project: {
-          doctorName: '$_id.doctorName',
-          specialty: '$_id.specialty',
-          appointmentCount: 1,
-          _id: 0
-        }
-      },
-      {
-        $sort: { appointmentCount: -1 }
-      }
-    ]);
-
-    // 2. Weekly Appointment Distribution
-    const weeklyDistribution = await Appointment.aggregate([
-      {
-        $group: {
-          _id: { $dayOfWeek: '$date' },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $project: {
-          day: {
-            $switch: {
-              branches: [
-                { case: { $eq: ['$_id', 1] }, then: 'Sunday' },
-                { case: { $eq: ['$_id', 2] }, then: 'Monday' },
-                { case: { $eq: ['$_id', 3] }, then: 'Tuesday' },
-                { case: { $eq: ['$_id', 4] }, then: 'Wednesday' },
-                { case: { $eq: ['$_id', 5] }, then: 'Thursday' },
-                { case: { $eq: ['$_id', 6] }, then: 'Friday' },
-                { case: { $eq: ['$_id', 7] }, then: 'Saturday' }
-              ]
-            }
-          },
-          count: 1,
-          _id: 0
-        }
-      },
-      {
-        $sort: { day: 1 }
-      }
-    ]);
-
-    // 3. Appointment Booking Lead Time
-    const currentDate = new Date();
-    const bookingLeadTime = await Appointment.aggregate([
-      {
-        $project: {
-          leadTime: {
-            $divide: [
-              { $subtract: ['$date', '$createdAt'] },
-              1000 * 60 * 60 * 24 // Convert to days
-            ]
+            },
+            count: { $sum: 1 }
           }
         }
-      },
-      {
-        $group: {
-          _id: null,
-          averageLeadTime: { $avg: '$leadTime' },
-          minLeadTime: { $min: '$leadTime' },
-          maxLeadTime: { $max: '$leadTime' }
-        }
-      }
-    ]);
+      ]);
 
-    // 4. Session Utilization Rate
-    const sessionUtilization = await Session.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalSessions: { $sum: 1 },
-          bookedSessions: {
-            $sum: { $cond: ['$isBooked', 1, 0] }
+      // Get appointments by specialty
+      const appointmentsBySpecialty = await Appointment.aggregate([
+        {
+          $lookup: {
+            from: 'doctors',
+            localField: 'doctor',
+            foreignField: '_id',
+            as: 'doctorInfo'
           }
-        }
-      },
-      {
-        $project: {
-          utilizationRate: {
-            $multiply: [
-              { $divide: ['$bookedSessions', '$totalSessions'] },
-              100
-            ]
-          },
-          totalSessions: 1,
-          bookedSessions: 1,
-          _id: 0
-        }
-      }
-    ]);
-
-    // 5. Medicine Inventory Status
-    const medicineInventoryStatus = await Inventory.aggregate([
-      {
-        $project: {
-          medicineName: 1,
-          status: {
-            $switch: {
-              branches: [
-                { case: { $lt: ['$quantity', 10] }, then: 'Critical' },
-                { case: { $lt: ['$quantity', 30] }, then: 'Low' },
-                { case: { $gte: ['$quantity', 30] }, then: 'Adequate' }
-              ]
-            }
-          }
-        }
-      },
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]);
-
-    res.json({
-      summary: {
-        totalAppointments,
-        totalMedicines,
-        todayAppointments,
-        lowStockCount,
-        expiringCount,
-        sessionUtilization: sessionUtilization[0] || { 
-          utilizationRate: 0, 
-          totalSessions: 0, 
-          bookedSessions: 0 
         },
-        leadTime: bookingLeadTime[0] || { 
-          averageLeadTime: 0, 
-          minLeadTime: 0, 
-          maxLeadTime: 0 
+        {
+          $unwind: { 
+            path: '$doctorInfo',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $group: {
+            _id: { $ifNull: ['$doctorInfo.specialty', 'Unspecified'] },
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $sort: { count: -1 }
         }
-      },
-      trends: {
-        appointmentTrends,
-        appointmentsByTime,
-        medicinesByExpiration,
-        appointmentsBySpecialty,
-        doctorWorkload,
-        weeklyDistribution,
-        medicineInventoryStatus 
-      }
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server error', error: err.message });
-  }
-});
+      ]);
+
+      // Get doctor workload
+      const doctorWorkload = await Appointment.aggregate([
+        {
+          $lookup: {
+            from: 'doctors',
+            localField: 'doctor',
+            foreignField: '_id',
+            as: 'doctorInfo'
+          }
+        },
+        {
+          $unwind: { 
+            path: '$doctorInfo',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $group: {
+            _id: '$doctor',
+            doctorName: { $first: { $ifNull: ['$doctorInfo.name', 'Unknown Doctor'] } },
+            specialty: { $first: { $ifNull: ['$doctorInfo.specialty', 'Unspecified'] } },
+            appointmentCount: { $sum: 1 }
+          }
+        },
+        {
+          $project: {
+            doctorName: 1,
+            specialty: 1,
+            appointmentCount: 1,
+            _id: 0
+          }
+        },
+        {
+          $sort: { appointmentCount: -1 }
+        }
+      ]);
+
+      // 2. Weekly Appointment Distribution
+      const weeklyDistribution = await Appointment.aggregate([
+        {
+          $group: {
+            _id: { $dayOfWeek: '$date' },
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $project: {
+            day: {
+              $switch: {
+                branches: [
+                  { case: { $eq: ['$_id', 1] }, then: 'Sunday' },
+                  { case: { $eq: ['$_id', 2] }, then: 'Monday' },
+                  { case: { $eq: ['$_id', 3] }, then: 'Tuesday' },
+                  { case: { $eq: ['$_id', 4] }, then: 'Wednesday' },
+                  { case: { $eq: ['$_id', 5] }, then: 'Thursday' },
+                  { case: { $eq: ['$_id', 6] }, then: 'Friday' },
+                  { case: { $eq: ['$_id', 7] }, then: 'Saturday' }
+                ]
+              }
+            },
+            count: 1,
+            _id: 0
+          }
+        },
+        {
+          $sort: { day: 1 }
+        }
+      ]);
+
+      // 3. Appointment Booking Lead Time
+      const currentDate = new Date();
+      const bookingLeadTime = await Appointment.aggregate([
+        {
+          $project: {
+            leadTime: {
+              $divide: [
+                { $subtract: ['$date', '$createdAt'] },
+                1000 * 60 * 60 * 24 // Convert to days
+              ]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            averageLeadTime: { $avg: '$leadTime' },
+            minLeadTime: { $min: '$leadTime' },
+            maxLeadTime: { $max: '$leadTime' }
+          }
+        }
+      ]);
+
+      // 4. Session Utilization Rate
+      const sessionUtilization = await Session.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalSessions: { $sum: 1 },
+            bookedSessions: {
+              $sum: { $cond: ['$isBooked', 1, 0] }
+            }
+          }
+        },
+        {
+          $project: {
+            utilizationRate: {
+              $multiply: [
+                { $divide: ['$bookedSessions', '$totalSessions'] },
+                100
+              ]
+            },
+            totalSessions: 1,
+            bookedSessions: 1,
+            _id: 0
+          }
+        }
+      ]);
+
+      // 5. Medicine Inventory Status
+      const medicineInventoryStatus = await Inventory.aggregate([
+        {
+          $project: {
+            medicineName: 1,
+            status: {
+              $switch: {
+                branches: [
+                  { case: { $lt: ['$quantity', 10] }, then: 'Critical' },
+                  { case: { $lt: ['$quantity', 30] }, then: 'Low' },
+                  { case: { $gte: ['$quantity', 30] }, then: 'Adequate' }
+                ]
+              }
+            }
+          }
+        },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+
+      res.json({
+        summary: {
+          totalAppointments,
+          totalMedicines,
+          todayAppointments,
+          lowStockCount,
+          expiringCount,
+          sessionUtilization: sessionUtilization[0] || { 
+            utilizationRate: 0, 
+            totalSessions: 0, 
+            bookedSessions: 0 
+          },
+          leadTime: bookingLeadTime[0] || { 
+            averageLeadTime: 0, 
+            minLeadTime: 0, 
+            maxLeadTime: 0 
+          }
+        },
+        trends: {
+          appointmentTrends,
+          appointmentsByTime,
+          medicinesByExpiration,
+          appointmentsBySpecialty,
+          doctorWorkload,
+          weeklyDistribution,
+          medicineInventoryStatus 
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ msg: 'Server error', error: err.message });
+    }
+  });
   
 
 module.exports = router;
