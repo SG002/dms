@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Doctor = require('../models/Doctor'); // Assuming you have a Doctor model
+const Doctor = require('../models/Doctor'); 
 const Session = require('../models/Session');
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const Transcript = require('../models/Transcript');
+const Inventory = require('../models/Inventory');
 router.use(express.json());
 
 // Add this new route at the top of your routes
