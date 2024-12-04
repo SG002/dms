@@ -4,7 +4,8 @@ import {
   Box, Drawer, AppBar, CssBaseline, Toolbar, List, Typography, ListItem,
   ListItemButton, ListItemIcon, ListItemText, Paper, CircularProgress, Container,
   Dialog, DialogTitle, DialogContent, DialogActions, Button, Card, CardContent,
-  CardActions, Grid, Snackbar, Alert, IconButton, SwipeableDrawer, useTheme, useMediaQuery
+  CardActions, Grid, Snackbar, Alert, IconButton, SwipeableDrawer, useTheme, 
+  useMediaQuery, ThemeProvider, createTheme  // Add createTheme here
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon, EventNote as EventNoteIcon, CalendarToday as CalendarTodayIcon,
@@ -13,6 +14,8 @@ import {
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
+const theme = createTheme(); 
+
 
 
 const menuItems = [
