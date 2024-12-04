@@ -70,6 +70,7 @@ const Analytics = () => {
     const fetchAnalytics = async () => {
       try {
         const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/admin/analytics');
+        console.log('Analytics data:', response.data);
         setData(response.data);
         setLoading(false);
       } catch (error) {
