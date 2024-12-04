@@ -3,8 +3,8 @@ import axios from 'axios';
 import {
   Box, Drawer, AppBar, CssBaseline, Toolbar, List, Typography, ListItem,
   ListItemButton, ListItemIcon, ListItemText, Paper, CircularProgress, Container,
-  FormControl, InputLabel, Select, MenuItem, Button, Grid, Alert, Snackbar,
-  IconButton, SwipeableDrawer, useTheme, useMediaQuery
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  IconButton, SwipeableDrawer, useTheme, useMediaQuery, Card, CardContent
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import {
@@ -12,9 +12,6 @@ import {
   CalendarToday as CalendarTodayIcon, ExitToApp as ExitToAppIcon,
   Menu as MenuIcon, LocalPharmacy as LocalPharmacyIcon
 } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 const drawerWidth = 240;
 const theme = createTheme();
@@ -28,14 +25,9 @@ const menuItems = [
   { text: 'Logout', icon: <ExitToAppIcon />, onClick: 'logout' }
 ];
 
-export default function ScheduleSessions() {
-  const [doctors, setDoctors] = useState([]);
-  const [selectedDoctor, setSelectedDoctor] = useState('');
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [availableTimes, setAvailableTimes] = useState([]);
-  const [selectedTime, setSelectedTime] = useState('');
+export default function MyBookings() {
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -51,88 +43,28 @@ export default function ScheduleSessions() {
   };
 
   useEffect(() => {
-    const fetchDoctors = async () => {
+    const fetchBookings = async () => {
       try {
-        const response = await axios.get('https://dispensary-management-system-pec.onrender.com/api/patient/doctors');
-        setDoctors(response.data);
+        const userId = localStorage.getItem('userId');
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `https://dispensary-management-system-pec.onrender.com/api/patient/bookings/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        setBookings(response.data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching doctors:', error);
+        console.error('Error fetching bookings:', error);
         setLoading(false);
-        showSnackbar('Error fetching doctors', 'error');
       }
     };
 
-    fetchDoctors();
+    fetchBookings();
   }, []);
-
-  const handleDoctorChange = (event) => {
-    setSelectedDoctor(event.target.value);
-    setSelectedDate(null);
-    setSelectedTime('');
-    setAvailableTimes([]);
-  };
-
-  const handleDateChange = async (date) => {
-    setSelectedDate(date);
-    setSelectedTime('');
-    if (selectedDoctor && date) {
-      try {
-        const response = await axios.get(
-          `https://dispensary-management-system-pec.onrender.com/api/patient/available-times/${selectedDoctor}/${date.toISOString()}`
-        );
-        setAvailableTimes(response.data);
-      } catch (error) {
-        console.error('Error fetching available times:', error);
-        showSnackbar('Error fetching available times', 'error');
-      }
-    }
-  };
-
-  const handleTimeChange = (event) => {
-    setSelectedTime(event.target.value);
-  };
-
-  const handleBooking = async () => {
-    try {
-      const userId = localStorage.getItem('userId');
-      const token = localStorage.getItem('token');
-      
-      await axios.post(
-        'https://dispensary-management-system-pec.onrender.com/api/patient/book-appointment',
-        {
-          doctorId: selectedDoctor,
-          patientId: userId,
-          date: selectedDate,
-          time: selectedTime
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      
-      showSnackbar('Appointment booked successfully!', 'success');
-      // Reset form
-      setSelectedDoctor('');
-      setSelectedDate(null);
-      setSelectedTime('');
-      setAvailableTimes([]);
-      
-    } catch (error) {
-      console.error('Error booking appointment:', error);
-      showSnackbar('Error booking appointment', 'error');
-    }
-  };
-
-  const showSnackbar = (message, severity = 'info') => {
-    setSnackbar({ open: true, message, severity });
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
 
   const drawer = (
     <Box>
@@ -155,6 +87,26 @@ export default function ScheduleSessions() {
         ))}
       </List>
     </Box>
+  );
+
+  // Mobile Card View Component
+  const BookingCard = ({ booking }) => (
+    <Card sx={{ mb: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          {booking.doctorName}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          <strong>Date:</strong> {new Date(booking.date).toLocaleDateString()}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          <strong>Time:</strong> {booking.time}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          <strong>Specialty:</strong> {booking.specialty}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 
   if (loading) {
@@ -183,7 +135,7 @@ export default function ScheduleSessions() {
               </IconButton>
             )}
             <Typography variant="h6" noWrap component="div">
-              Schedule Session
+              My Bookings
             </Typography>
           </Toolbar>
         </AppBar>
@@ -225,86 +177,55 @@ export default function ScheduleSessions() {
           <Toolbar />
           <Container maxWidth="lg">
             <Typography variant="h4" component="h1" fontWeight="bold" mb={4}>
-              Schedule a Session
+              My Bookings
             </Typography>
 
-            <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Select Doctor</InputLabel>
-                    <Select
-                      value={selectedDoctor}
-                      onChange={handleDoctorChange}
-                      label="Select Doctor"
-                    >
-                      {doctors.map((doctor) => (
-                        <MenuItem key={doctor._id} value={doctor._id}>
-                          Dr. {doctor.name} - {doctor.specialty}
-                        </MenuItem>
+            {bookings.length === 0 ? (
+              <Paper sx={{ p: 3, textAlign: 'center' }}>
+                <Typography color="text.secondary">
+                  No bookings available.
+                </Typography>
+              </Paper>
+            ) : isMobile ? (
+              // Mobile Card View
+              <Box sx={{ mt: 2 }}>
+                {bookings.map((booking) => (
+                  <BookingCard key={booking._id} booking={booking} />
+                ))}
+              </Box>
+            ) : (
+              // Desktop Table View
+              <Paper sx={{ width: '100%', mb: 2, overflow: 'hidden' }}>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Doctor Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Time</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Specialty</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {bookings.map((booking) => (
+                        <TableRow 
+                          key={booking._id}
+                          sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }}
+                        >
+                          <TableCell>{booking.doctorName}</TableCell>
+                          <TableCell>{new Date(booking.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{booking.time}</TableCell>
+                          <TableCell>{booking.specialty}</TableCell>
+                        </TableRow>
                       ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <DatePicker
-                      label="Select Date"
-                      value={selectedDate}
-                      onChange={handleDateChange}
-                      renderInput={(params) => <TextField {...params} fullWidth />}
-                      minDate={new Date()}
-                      disabled={!selectedDoctor}
-                    />
-                  </LocalizationProvider>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth disabled={!availableTimes.length}>
-                    <InputLabel>Select Time</InputLabel>
-                    <Select
-                      value={selectedTime}
-                      onChange={handleTimeChange}
-                      label="Select Time"
-                    >
-                      {availableTimes.map((time) => (
-                        <MenuItem key={time} value={time}>
-                          {time}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleBooking}
-                    disabled={!selectedDoctor || !selectedDate || !selectedTime}
-                    fullWidth={isMobile}
-                    sx={{ mt: 2 }}
-                  >
-                    Book Appointment
-                  </Button>
-                </Grid>
-              </Grid>
-            </Paper>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            )}
           </Container>
         </Box>
       </Box>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </ThemeProvider>
   );
 }

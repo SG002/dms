@@ -1,20 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-  Box, Drawer, AppBar, CssBaseline, Toolbar, List, Typography, ListItem,
-  ListItemButton, ListItemIcon, ListItemText, Paper, CircularProgress, Container,
-  FormControl, InputLabel, Select, MenuItem, Button, Grid, Alert, Snackbar,
-  IconButton, SwipeableDrawer, useTheme, useMediaQuery
+  Box,
+  Drawer,
+  AppBar,
+  CssBaseline,
+  Toolbar,
+  List,
+  Typography,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Paper,
+  CircularProgress,
+  Container,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import {
-  Dashboard as DashboardIcon, EventNote as EventNoteIcon,
-  CalendarToday as CalendarTodayIcon, ExitToApp as ExitToAppIcon,
-  Menu as MenuIcon, LocalPharmacy as LocalPharmacyIcon
+  Dashboard as DashboardIcon,
+  EventNote as EventNoteIcon,
+  CalendarToday as CalendarTodayIcon,
+  LocalPharmacy as LocalPharmacyIcon,
+  ExitToApp as ExitToAppIcon
 } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 const drawerWidth = 240;
 const theme = createTheme();
@@ -31,25 +53,27 @@ const menuItems = [
 export default function ScheduleSessions() {
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState('');
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [availableTimes, setAvailableTimes] = useState([]);
-  const [selectedTime, setSelectedTime] = useState('');
+  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = () => {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        window.location.href = '/login';
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('role');
-    window.location.href = '/login';
-  };
-
+  // Fetch doctors on load
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -58,253 +82,308 @@ export default function ScheduleSessions() {
         setLoading(false);
       } catch (error) {
         console.error('Error fetching doctors:', error);
+        showSnackbar('Error loading doctors. Please try again.', 'error');
         setLoading(false);
-        showSnackbar('Error fetching doctors', 'error');
       }
     };
 
     fetchDoctors();
   }, []);
 
+  // Fetch sessions for selected doctor
+  const fetchSessions = async (doctorId) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`https://dispensary-management-system-pec.onrender.com/api/patient/sessions/${doctorId}`);
+      setSessions(response.data);
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      showSnackbar('Error loading sessions. Please try again.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle doctor selection
   const handleDoctorChange = (event) => {
     setSelectedDoctor(event.target.value);
-    setSelectedDate(null);
-    setSelectedTime('');
-    setAvailableTimes([]);
+    fetchSessions(event.target.value);
   };
 
-  const handleDateChange = async (date) => {
-    setSelectedDate(date);
-    setSelectedTime('');
-    if (selectedDoctor && date) {
-      try {
-        const response = await axios.get(
-          `https://dispensary-management-system-pec.onrender.com/api/patient/available-times/${selectedDoctor}/${date.toISOString()}`
-        );
-        setAvailableTimes(response.data);
-      } catch (error) {
-        console.error('Error fetching available times:', error);
-        showSnackbar('Error fetching available times', 'error');
-      }
-    }
-  };
-
-  const handleTimeChange = (event) => {
-    setSelectedTime(event.target.value);
-  };
-
-  const handleBooking = async () => {
-    try {
-      const userId = localStorage.getItem('userId');
-      const token = localStorage.getItem('token');
-      
-      await axios.post(
-        'https://dispensary-management-system-pec.onrender.com/api/patient/book-appointment',
-        {
-          doctorId: selectedDoctor,
-          patientId: userId,
-          date: selectedDate,
-          time: selectedTime
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      
-      showSnackbar('Appointment booked successfully!', 'success');
-      // Reset form
-      setSelectedDoctor('');
-      setSelectedDate(null);
-      setSelectedTime('');
-      setAvailableTimes([]);
-      
-    } catch (error) {
-      console.error('Error booking appointment:', error);
-      showSnackbar('Error booking appointment', 'error');
-    }
-  };
-
+  // Show snackbar helper
   const showSnackbar = (message, severity = 'info') => {
-    setSnackbar({ open: true, message, severity });
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    });
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
+  // Handle snackbar close
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  const drawer = (
-    <Box>
-      <Toolbar />
-      <List>
-        {menuItems.map((item, index) => (
-          <ListItem key={index} disablePadding>
-            {item.onClick === 'logout' ? (
-              <ListItemButton onClick={handleLogout}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            ) : (
-              <ListItemButton component="a" href={item.path}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            )}
-          </ListItem>
-        ))}
-      </List>
-    </Box>
-  );
+  // Handle session booking
+  const handleBookSession = async (sessionId) => {
+    const patientId = localStorage.getItem('userId');
+    
+    // Debug logs
+    console.log('Booking attempt with:', {
+      sessionId,
+      patientId,
+      sessionIdType: typeof sessionId,
+      patientIdType: typeof patientId
+    });
+  
+    if (!patientId) {
+      showSnackbar('Please log in to book a session', 'error');
+      window.location.href = '/login';
+      return;
+    }
+  
+    try {
+      const response = await axios.post('https://dispensary-management-system-pec.onrender.com/api/patient/book-session', {
+        sessionId: sessionId.toString(), 
+        patientId: patientId.toString() 
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Booking response:', response.data);
+      showSnackbar('Session booked successfully!', 'success');
+      
+      // Refresh sessions list after booking
+      if (selectedDoctor) {
+        await fetchSessions(selectedDoctor);
+      }
+    } catch (error) {
+      console.error('Full error object:', error);
+      console.error('Error response:', error.response);
+      
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.details || 
+                          'Error booking session. Please try again.';
+      showSnackbar(errorMessage, 'error');
+    }
+  };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('userId');
+    localStorage.removeItem('token'); // If you're using JWT tokens
+    window.location.href = '/login';
+  };
 
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <AppBar
+          position="fixed"
+          sx={{
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            backgroundColor: '#2196f3'
+          }}
+        >
           <Toolbar>
-            {isMobile && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
             <Typography variant="h6" noWrap component="div">
-              Schedule Session
+              Medical Appointment System
             </Typography>
           </Toolbar>
         </AppBar>
 
-        {isMobile ? (
-          <SwipeableDrawer
-            variant="temporary"
-            anchor="left"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            onOpen={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true,
-            }}
-            sx={{
-              display: { xs: 'block', sm: 'block', md: 'none' },
-              '& .MuiDrawer-paper': {
-                boxSizing: 'border-box',
-                width: drawerWidth,
-              },
-            }}
-          >
-            {drawer}
-          </SwipeableDrawer>
-        ) : (
-          <Drawer
-            variant="permanent"
-            sx={{
+        <Drawer
+          variant="permanent"
+          sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            [`& .MuiDrawer-paper`]: {
               width: drawerWidth,
-              flexShrink: 0,
-              [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
-            }}
-          >
-            {drawer}
-          </Drawer>
-        )}
+              boxSizing: 'border-box',
+              backgroundColor: '#f5f5f5'
+            },
+          }}
+        >
+          <Toolbar />
+          <Box sx={{ overflow: 'auto' }}>
+            <List>
+              {menuItems.map((item, index) => (
+                <ListItem key={index} disablePadding>
+                  {item.onClick === 'logout' ? (
+                    <ListItemButton onClick={handleLogout}>
+                      <ListItemIcon>{item.icon}</ListItemIcon>
+                      <ListItemText primary={item.text} />
+                    </ListItemButton>
+                  ) : (
+                    <ListItemButton
+                      component="a"
+                      href={item.path}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#e0e0e0'
+                        }
+                      }}
+                    >
+                      <ListItemIcon>{item.icon}</ListItemIcon>
+                      <ListItemText primary={item.text} />
+                    </ListItemButton>
+                  )}
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        </Drawer>
 
         <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
           <Toolbar />
           <Container maxWidth="lg">
-            <Typography variant="h4" component="h1" fontWeight="bold" mb={4}>
+            <Typography
+              variant="h4"
+              component="h1"
+              fontWeight="bold"
+              mb={4}
+              color="primary"
+            >
               Schedule a Session
             </Typography>
 
-            <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 4 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Select Doctor</InputLabel>
-                    <Select
-                      value={selectedDoctor}
-                      onChange={handleDoctorChange}
-                      label="Select Doctor"
-                    >
-                      {doctors.map((doctor) => (
-                        <MenuItem key={doctor._id} value={doctor._id}>
-                          Dr. {doctor.name} - {doctor.specialty}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
+            {/* Doctor Selection */}
+            <FormControl
+              fullWidth
+              sx={{
+                mb: 4,
+                backgroundColor: 'white',
+                '& .MuiOutlinedInput-root': {
+                  '&:hover fieldset': {
+                    borderColor: '#2196f3',
+                  },
+                },
+              }}
+            >
+              <InputLabel>Select a Doctor</InputLabel>
+              <Select
+                value={selectedDoctor}
+                onChange={handleDoctorChange}
+                label="Select a Doctor"
+              >
+                {doctors.map((doctor) => (
+                  <MenuItem key={doctor._id} value={doctor._id}>
+                    Dr. {doctor.name} - {doctor.specialty}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-                <Grid item xs={12} md={6}>
-                  <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <DatePicker
-                      label="Select Date"
-                      value={selectedDate}
-                      onChange={handleDateChange}
-                      renderInput={(params) => <TextField {...params} fullWidth />}
-                      minDate={new Date()}
-                      disabled={!selectedDoctor}
-                    />
-                  </LocalizationProvider>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth disabled={!availableTimes.length}>
-                    <InputLabel>Select Time</InputLabel>
-                    <Select
-                      value={selectedTime}
-                      onChange={handleTimeChange}
-                      label="Select Time"
-                    >
-                      {availableTimes.map((time) => (
-                        <MenuItem key={time} value={time}>
-                          {time}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleBooking}
-                    disabled={!selectedDoctor || !selectedDate || !selectedTime}
-                    fullWidth={isMobile}
-                    sx={{ mt: 2 }}
-                  >
-                    Book Appointment
-                  </Button>
-                </Grid>
-              </Grid>
-            </Paper>
+            {loading ? (
+              <Box display="flex" justifyContent="center" m={4}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Paper
+                sx={{
+                  width: '100%',
+                  mb: 2,
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  boxShadow: 3
+                }}
+              >
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Doctor Name</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Specialty</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Time</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {sessions.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">
+                            <Typography variant="body1" sx={{ py: 2 }}>
+                              {selectedDoctor
+                                ? 'No available sessions for this doctor'
+                                : 'Please select a doctor to view available sessions'}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        sessions.map((session) => (
+                          <TableRow
+                            key={session._id}
+                            sx={{
+                              '&:hover': {
+                                backgroundColor: '#f5f5f5'
+                              }
+                            }}
+                          >
+                            <TableCell>Dr. {session.doctor.name}</TableCell>
+                            <TableCell>{session.specialty}</TableCell>
+                            <TableCell>
+                              {new Date(session.date).toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </TableCell>
+                            <TableCell>{session.time}</TableCell>
+                            <TableCell align="right">
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => handleBookSession(session._id)}
+                                sx={{
+                                  textTransform: 'none',
+                                  '&:hover': {
+                                    backgroundColor: '#1976d2'
+                                  }
+                                }}
+                              >
+                                Book Session
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            )}
           </Container>
+
+          {/* Snackbar for notifications */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
+            onClose={handleSnackbarClose}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Alert
+              onClose={handleSnackbarClose}
+              severity={snackbar.severity}
+              sx={{
+                width: '100%',
+                '& .MuiAlert-message': {
+                  fontSize: '1rem'
+                }
+              }}
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
         </Box>
       </Box>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </ThemeProvider>
   );
 }
