@@ -13,7 +13,7 @@ import {
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
-const theme = createTheme();
+
 
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/patient/dashboard' },
