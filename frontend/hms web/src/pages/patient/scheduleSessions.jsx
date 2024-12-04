@@ -176,7 +176,7 @@ export default function ScheduleSessions() {
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('userId');
-    localStorage.removeItem('token'); // If you're using JWT tokens
+    localStorage.removeItem('token'); 
     window.location.href = '/login';
   };
 

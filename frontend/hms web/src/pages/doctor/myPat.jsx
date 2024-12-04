@@ -1,50 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Drawer,
-  AppBar,
-  CssBaseline,
-  Toolbar,
-  List,
-  Typography,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-  CircularProgress,
-  Container,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Snackbar,
-  Alert,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
+  Box, Grid, Card, CardContent, CardActions, Drawer, AppBar, CssBaseline, 
+  Toolbar, List, Typography, ListItem, ListItemButton, ListItemIcon, 
+  ListItemText, Paper, CircularProgress, Container, Table, TableBody, 
+  TableCell, TableContainer, TableHead, TableRow, Snackbar, Alert, Button, 
+  Dialog, DialogTitle, DialogContent, DialogActions, IconButton, 
+  SwipeableDrawer, useTheme, useMediaQuery
 } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import {
-  Dashboard as DashboardIcon,
-  EventNote as EventNoteIcon,
-  CalendarToday as CalendarTodayIcon,
-  ExitToApp as ExitToAppIcon,
-  Upload as UploadIcon,
-  Visibility as VisibilityIcon
+  Dashboard as DashboardIcon, EventNote as EventNoteIcon,
+  CalendarToday as CalendarTodayIcon, ExitToApp as ExitToAppIcon,
+  Upload as UploadIcon, Visibility as VisibilityIcon, Menu as MenuIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
-const theme = createTheme();
 
 const menuItems = [
   { text: 'My Appointments', icon: <EventNoteIcon />, path: '/doctor/appointments' },
@@ -53,6 +23,9 @@ const menuItems = [
 ];
 
 export default function MyPatients() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({
@@ -66,6 +39,10 @@ export default function MyPatients() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState(null);
   const [patientTranscripts, setPatientTranscripts] = useState([]);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
   useEffect(() => {
     const checkAuth = () => {
@@ -120,24 +97,24 @@ export default function MyPatients() {
     setUploadDialogOpen(true);
   };
 
-  // ... existing imports ...
+
 
 const handleFileSelect = (event) => {
   const file = event.target.files[0];
   // Add file validation
   if (file) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024; 
 
     if (!allowedTypes.includes(file.type)) {
       showSnackbar('Please select a valid image (JPEG, PNG) or PDF file', 'error');
-      event.target.value = ''; // Reset file input
+      event.target.value = ''; 
       return;
     }
 
     if (file.size > maxSize) {
       showSnackbar('File size should be less than 5MB', 'error');
-      event.target.value = ''; // Reset file input
+      event.target.value = '';
       return;
     }
   }
@@ -152,7 +129,7 @@ const handleUploadSubmit = async () => {
 
   // Create FormData and log its contents
   const formData = new FormData();
-  formData.append('file', selectedFile); // Changed from 'transcript' to 'file'
+  formData.append('file', selectedFile); 
   formData.append('patientId', selectedPatientId);
   formData.append('doctorId', localStorage.getItem('userId'));
 
@@ -177,7 +154,7 @@ const handleUploadSubmit = async () => {
           Authorization: `Bearer ${token}`,
           'Accept': 'application/json'
         },
-        timeout: 60000, // Increased timeout to 60 seconds
+        timeout: 60000, 
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
         onUploadProgress: (progressEvent) => {
@@ -260,132 +237,210 @@ const handleViewTranscript = async (patientId) => {
     window.location.href = '/login';
   };
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ display: 'flex' }}>
-        <CssBaseline />
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: (theme) => theme.zIndex.drawer + 1,
-            backgroundColor: '#2196f3'
-          }}
+  // Mobile Card Component
+  const PatientCard = ({ patient }) => (
+    <Card sx={{ mb: 2, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          {patient.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          <strong>Email:</strong> {patient.email}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          <strong>Phone:</strong> {patient.phone}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button
+          size="small"
+          startIcon={<UploadIcon />}
+          onClick={() => handleUploadClick(patient._id)}
         >
-          <Toolbar>
-            <Typography variant="h6" noWrap component="div">
-              Medical Appointment System
-            </Typography>
-          </Toolbar>
-        </AppBar>
-
-        <Drawer
-          variant="permanent"
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            [`& .MuiDrawer-paper`]: {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              backgroundColor: '#f5f5f5'
-            },
-          }}
+          Upload Transcript
+        </Button>
+        <Button
+          size="small"
+          startIcon={<VisibilityIcon />}
+          onClick={() => handleViewTranscript(patient._id)}
         >
-          <Toolbar />
-          <Box sx={{ overflow: 'auto' }}>
-            <List>
-              {menuItems.map((item, index) => (
-                <ListItem key={index} disablePadding>
-                  {item.onClick === 'logout' ? (
-                    <ListItemButton onClick={handleLogout}>
-                      <ListItemIcon>{item.icon}</ListItemIcon>
-                      <ListItemText primary={item.text} />
-                    </ListItemButton>
-                  ) : (
-                    <ListItemButton
-                      component="a"
-                      href={item.path}
-                      sx={{
-                        '&:hover': {
-                          backgroundColor: '#e0e0e0'
-                        }
-                      }}
-                    >
-                      <ListItemIcon>{item.icon}</ListItemIcon>
-                      <ListItemText primary={item.text} />
-                    </ListItemButton>
-                  )}
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Drawer>
+          View Transcripts
+        </Button>
+      </CardActions>
+    </Card>
+  );
 
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-          <Toolbar />
-          <Container maxWidth="lg">
-            <Typography
-              variant="h4"
-              component="h1"
-              fontWeight="bold"
-              mb={4}
-            >
-              My Patients
-            </Typography>
-
-            {loading ? (
-              <Box display="flex" justifyContent="center" mt={4}>
-                <CircularProgress />
-              </Box>
-            ) : patients.length === 0 ? (
-              <Paper sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="body1" color="text.secondary">
-                  No patients have booked sessions with you yet.
-                </Typography>
-              </Paper>
+  const drawer = (
+    <Box>
+      <Toolbar />
+      <List>
+        {menuItems.map((item, index) => (
+          <ListItem key={index} disablePadding>
+            {item.onClick === 'logout' ? (
+              <ListItemButton onClick={handleLogout}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
             ) : (
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Patient Name</TableCell>
-                      <TableCell>Email</TableCell>
-                      <TableCell>Phone Number</TableCell>
-                      <TableCell align="center">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {patients.map((patient) => (
-                      <TableRow key={patient._id}>
-                        <TableCell>{patient.name}</TableCell>
-                        <TableCell>{patient.email}</TableCell>
-                        <TableCell>{patient.phone}</TableCell>
-                        <TableCell align="center">
-                          <Button
-                            startIcon={<UploadIcon />}
-                            variant="contained"
-                            color="primary"
-                            onClick={() => handleUploadClick(patient._id)}
-                            sx={{ mr: 1 }}
-                          >
-                            Upload
-                          </Button>
-                          <Button
-                            startIcon={<VisibilityIcon />}
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => handleViewTranscript(patient._id)}
-                          >
-                            View
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <ListItemButton component="a" href={item.path}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
             )}
-          </Container>
-        </Box>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+      
+      {/* AppBar */}
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
+          backgroundColor: '#2196f3'
+        }}
+      >
+        <Toolbar>
+          {isMobile && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { md: 'none' } }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+          <Typography variant="h6" noWrap component="div">
+            Medical Appointment System
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      {/* Drawer */}
+      <Box
+        component="nav"
+        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+      >
+        {isMobile ? (
+          <SwipeableDrawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            onOpen={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true,
+            }}
+            sx={{
+              display: { xs: 'block', md: 'none' },
+              '& .MuiDrawer-paper': {
+                boxSizing: 'border-box',
+                width: drawerWidth,
+                backgroundColor: '#f5f5f5'
+              },
+            }}
+          >
+            {drawer}
+          </SwipeableDrawer>
+        ) : (
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: 'none', md: 'block' },
+              '& .MuiDrawer-paper': {
+                boxSizing: 'border-box',
+                width: drawerWidth,
+                backgroundColor: '#f5f5f5'
+              },
+            }}
+            open
+          >
+            {drawer}
+          </Drawer>
+        )}
+      </Box>
+
+      {/* Main content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+        }}
+      >
+        <Toolbar />
+        <Container maxWidth="lg">
+          <Typography variant="h4" component="h1" fontWeight="bold" mb={4}>
+            My Patients
+          </Typography>
+
+          {loading ? (
+            <Box display="flex" justifyContent="center" m={4}>
+              <CircularProgress />
+            </Box>
+          ) : patients.length === 0 ? (
+            <Paper sx={{ p: 3, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                No patients have booked sessions with you yet.
+              </Typography>
+            </Paper>
+          ) : isMobile ? (
+            // Mobile Card View
+            <Box sx={{ mt: 2 }}>
+              {patients.map((patient) => (
+                <PatientCard key={patient._id} patient={patient} />
+              ))}
+            </Box>
+          ) : (
+            // Desktop Table View
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Phone</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {patients.map((patient) => (
+                    <TableRow key={patient._id}>
+                      <TableCell>{patient.name}</TableCell>
+                      <TableCell>{patient.email}</TableCell>
+                      <TableCell>{patient.phone}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="small"
+                          startIcon={<UploadIcon />}
+                          onClick={() => handleUploadClick(patient._id)}
+                          sx={{ mr: 1 }}
+                        >
+                          Upload
+                        </Button>
+                        <Button
+                          size="small"
+                          startIcon={<VisibilityIcon />}
+                          onClick={() => handleViewTranscript(patient._id)}
+                        >
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Container>
       </Box>
 
       {/* Upload Dialog */}
@@ -496,6 +551,6 @@ const handleViewTranscript = async (patientId) => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </ThemeProvider>
+    </Box>
   );
 }
