@@ -137,28 +137,20 @@ router.post('/upload-transcript', upload.single('file'), async (req, res) => {
   }
 });
 
-// ... rest of the code ...
-
-// Get transcripts for a specific patient
-// Get all transcripts for a specific patient
 router.get('/transcripts/:patientId/:doctorId', async (req, res) => {
   try {
     const { patientId, doctorId } = req.params;
 
-    // Find all transcripts for this patient-doctor pair
+    
     const transcripts = await Transcript.find({
       patientId: patientId,
       doctorId: doctorId,
       status: { $in: ['published', undefined] }
     })
-    .sort({ createdAt: -1 }) // Sort by newest first
+    .sort({ createdAt: -1 }) 
     .select('imageUrl createdAt type title status');
 
-    if (!transcripts || transcripts.length === 0) {
-      return res.status(404).json({ message: 'No transcripts found' });
-    }
-
-    // Format the response
+   
     const formattedTranscripts = transcripts.map(transcript => ({
       _id: transcript._id,
       documentUrl: transcript.imageUrl,
@@ -168,7 +160,7 @@ router.get('/transcripts/:patientId/:doctorId', async (req, res) => {
       status: transcript.status || 'published'
     }));
 
-    res.json(formattedTranscripts);
+    res.json(formattedTranscripts); 
 
   } catch (error) {
     console.error('Error fetching transcripts:', error);
