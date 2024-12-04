@@ -25,10 +25,11 @@ import {
   Chip
 } from '@mui/material';
 import {
-  Dashboard as DashboardIcon,
-  EventNote as EventNoteIcon,
-  LocalPharmacy as LocalPharmacyIcon,
-  ExitToApp as ExitToAppIcon,
+    Dashboard as DashboardIcon, 
+    EventNote as EventNoteIcon,
+    CalendarToday as CalendarTodayIcon, 
+    ExitToApp as ExitToAppIcon,
+    LocalPharmacy as LocalPharmacyIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
