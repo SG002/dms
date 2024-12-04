@@ -330,25 +330,19 @@ router.post('/sessions', async (req, res) => {
       ]);
 
       // Get appointments by specialty
-      const appointmentsBySpecialty = await Appointment.aggregate([
+      const appointmentsBySpecialty = await Doctor.aggregate([
         {
           $lookup: {
-            from: 'doctors',
-            localField: 'doctor',
-            foreignField: '_id',
-            as: 'doctorInfo'
-          }
-        },
-        {
-          $unwind: { 
-            path: '$doctorInfo',
-            preserveNullAndEmptyArrays: true
+            from: 'appointments',
+            localField: '_id',
+            foreignField: 'doctor',
+            as: 'appointments'
           }
         },
         {
           $group: {
-            _id: { $ifNull: ['$doctorInfo.specialty', 'Unspecified'] },
-            count: { $sum: 1 }
+            _id: '$specialty',
+            count: { $sum: { $size: '$appointments' } }
           }
         },
         {
@@ -357,35 +351,20 @@ router.post('/sessions', async (req, res) => {
       ]);
 
       // Get doctor workload
-      const doctorWorkload = await Appointment.aggregate([
+      const doctorWorkload = await Doctor.aggregate([
         {
           $lookup: {
-            from: 'doctors',
-            localField: 'doctor',
-            foreignField: '_id',
-            as: 'doctorInfo'
-          }
-        },
-        {
-          $unwind: { 
-            path: '$doctorInfo',
-            preserveNullAndEmptyArrays: true
-          }
-        },
-        {
-          $group: {
-            _id: '$doctor',
-            doctorName: { $first: { $ifNull: ['$doctorInfo.name', 'Unknown Doctor'] } },
-            specialty: { $first: { $ifNull: ['$doctorInfo.specialty', 'Unspecified'] } },
-            appointmentCount: { $sum: 1 }
+            from: 'appointments',
+            localField: '_id',
+            foreignField: 'doctor',
+            as: 'appointments'
           }
         },
         {
           $project: {
-            doctorName: 1,
-            specialty: 1,
-            appointmentCount: 1,
-            _id: 0
+            doctorName: '$name',
+            specialty: '$specialty',
+            appointmentCount: { $size: '$appointments' }
           }
         },
         {
