@@ -235,6 +235,27 @@ router.get('/transcript/:transcriptId', async (req, res) => {
     res.status(500).json({ message: 'Error fetching document' });
   }
 });
+
+router.get('/inventory', async (req, res) => {
+  try {
+    const availableMedicines = await Inventory.find({ 
+      quantity: { $gt: 0 } 
+    }).select('medicineName quantity expirationDate');
+
+    // Sort medicines by name
+    availableMedicines.sort((a, b) => 
+      a.medicineName.localeCompare(b.medicineName)
+    );
+
+    res.json(availableMedicines);
+  } catch (err) {
+    console.error('Error fetching inventory:', err);
+    res.status(500).json({ 
+      message: 'Error fetching inventory data',
+      error: err.message 
+    });
+  }
+});
   
 
 module.exports = router;

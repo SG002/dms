@@ -31,6 +31,7 @@ import {
   Dashboard as DashboardIcon,
   EventNote as EventNoteIcon,
   CalendarToday as CalendarTodayIcon,
+  LocalPharmacy as LocalPharmacyIcon,
   ExitToApp as ExitToAppIcon
 } from '@mui/icons-material';
 
@@ -42,6 +43,7 @@ const menuItems = [
   { text: 'All Doctors', icon: <EventNoteIcon />, path: '/patient/doctors' },
   { text: 'Schedule Sessions', icon: <CalendarTodayIcon />, path: '/patient/schedule-sessions' },
   { text: 'My Bookings', icon: <CalendarTodayIcon />, path: '/patient/my-bookings' },
+  { text: 'Inventory', icon: <LocalPharmacyIcon />, path: '/patient/inventory' },
   { text: 'Logout', icon: <ExitToAppIcon />, onClick: 'logout' }
 ];
 

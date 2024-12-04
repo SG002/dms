@@ -13,6 +13,7 @@ import MyBookings from './pages/patient/myBooking';
 import MyAppointments from './pages/doctor/myApp';
 import MyPatients from './pages/doctor/myPat';
 import Analytics from './pages/admin/analytics';
+import PatientInventory from './pages/patient/inventoryPat';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/patient/doctors" element={<AllDoctors />} />
           <Route path="/patient/schedule-sessions" element={<ScheduleSessions />} />
           <Route path="/patient/my-bookings" element={<MyBookings />} />
+          <Route path="/patient/inventory" element={<PatientInventory />} />
           {/* Doctor Routes */}
           <Route path="/doctor/appointments" element={<MyAppointments />} />
           <Route path="/doctor/patients" element={<MyPatients />} />
