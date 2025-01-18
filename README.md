@@ -10,7 +10,7 @@ Real-time Inventory Tracking: Keep track of medicine availability and manage sto
 Admin Dashboard: Administrators can manage users, doctors, and inventory.<br>
 
 Links <br>
--[Website Link](https://dmspec.onrender.com/dms/"dms link") - Access the live application   <br>
+-[Website Link](https://dmspec.onrender.com/dms/) - Access the live application   <br>
 -Doctor Appointment Page - Doctors can view and manage their appointments (https://dmspec.onrender.com/doctor/appointments)<br>
 -Admin Page - Admin can add new doctors to the system. (https://dmspec.onrender.com/admin/dashboard)<br><br>
 ![Admin- Add Doctor](https://github.com/user-attachments/assets/083aea0b-f5f5-484d-8416-d21a007e785f)<br><br><br>
