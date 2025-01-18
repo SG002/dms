@@ -1,4 +1,4 @@
-# Dispensary Management System (DMS) <br>
+# Dispensary Management System (DMS)
 ---
 Overview <br>
 The Dispensary Management System (DMS) is a web-based platform that helps streamline appointment scheduling, inventory tracking, and payment processing for dispensaries. It features three user roles—patients, doctors, and administrators—with dedicated functionalities for each.  <br>
