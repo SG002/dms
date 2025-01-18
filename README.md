@@ -1,15 +1,15 @@
 # Dispensary Management System (DMS)
 
-Overview <br>
+#### Overview <br>
 The Dispensary Management System (DMS) is a web-based platform that helps streamline appointment scheduling, inventory tracking, and payment processing for dispensaries. It features three user roles—patients, doctors, and administrators—with dedicated functionalities for each.  <br>
 
-Key Features: <br>
-User Authentication: Secure login for patients, doctors, and administrators.<br>
-Appointment Scheduling: Patients can book appointments with doctors, and doctors can manage their schedules.<br>
-Real-time Inventory Tracking: Keep track of medicine availability and manage stock.<br>
-Admin Dashboard: Administrators can manage users, doctors, and inventory.<br>
+#### Key Features: <br>
+- User Authentication: Secure login for patients, doctors, and administrators.<br>
+- Appointment Scheduling: Patients can book appointments with doctors, and doctors can manage their schedules.<br>
+- Real-time Inventory Tracking: Keep track of medicine availability and manage stock.<br>
+- Admin Dashboard: Administrators can manage users, doctors, and inventory.<br>
 
-Links <br>
+#### Links <br>
 -[Website Link](https://dmspec.onrender.com/dms/) - Access the live application   <br>
 -[Doctor Appointment Page](https://dmspec.onrender.com/doctor/appointments) - Doctors can view and manage their appointments <br>
 -[Admin Page](https://dmspec.onrender.com/admin/dashboard) - Admin can add new doctors to the system. <br><br>
