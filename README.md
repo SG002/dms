@@ -11,7 +11,7 @@ The Dispensary Management System (DMS) is a web-based platform that helps stream
 - Transcript Upload: Doctors can upload medical transcription that displays on patient dashboard. <br>
 
 #### Links <br>
-- [Website Link](https://dmspec.onrender.com/dms/) - Access the live application   <br>
+- [Website Link](https://dmspec.onrender.com/) - Access the live application   <br>
 - [Doctor Appointment Page](https://dmspec.onrender.com/doctor/appointments) - Doctors can view and manage their appointments <br>
 - [Admin Page](https://dmspec.onrender.com/admin/dashboard) - Admin can add new doctors to the system. <br><br>
 ![Admin- Add Doctor](https://github.com/user-attachments/assets/083aea0b-f5f5-484d-8416-d21a007e785f)<br><br><br>
