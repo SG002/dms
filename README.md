@@ -23,7 +23,16 @@ The Dispensary Management System (DMS) is a web-based platform that helps stream
 
 #### Doctor Page: <br>
 ![image](https://github.com/user-attachments/assets/f198126b-8396-4f4f-aee0-75a693011590)<br><br><br>
+![image](https://github.com/user-attachments/assets/d178e3f5-e21b-4e20-a67a-067aecdde53c)<br><br><br>
 ![image](https://github.com/user-attachments/assets/31728e0e-3595-40f3-bf78-aaeb00961125)<br><br>
+
+#### Patient Page: <br>
+![image](https://github.com/user-attachments/assets/2dff4a89-fe66-465d-b25c-0a33567e3cf2)
+![image](https://github.com/user-attachments/assets/36aab984-d0d9-4bdd-8a5c-79a7f5e6871c)
+![image](https://github.com/user-attachments/assets/53cd200d-92c8-4f25-8fb3-c4c65d565084)
+![image](https://github.com/user-attachments/assets/b3c30ec2-6365-462d-a0ab-4ecf3d0300a0)
+
+
 
 
 
