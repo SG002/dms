@@ -14,10 +14,18 @@ The Dispensary Management System (DMS) is a web-based platform that helps stream
 - [Website Link](https://dmspec.onrender.com/) - Access the live application   <br>
 - [Doctor Appointment Page](https://dmspec.onrender.com/doctor/appointments) - Doctors can view and manage their appointments <br>
 - [Admin Page](https://dmspec.onrender.com/admin/dashboard) - Admin can add new doctors to the system. <br><br>
+
+#### Admin Page: <br>
 ![Admin- Add Doctor](https://github.com/user-attachments/assets/083aea0b-f5f5-484d-8416-d21a007e785f)<br><br><br>
 ![Admin- Analytics1](https://github.com/user-attachments/assets/2f770163-39d6-47fc-8084-9003da7b6a5f)<br><br><br>
 ![Admin- Inventory](https://github.com/user-attachments/assets/11f89d7a-b1d7-43f2-9c55-25269f2f7e9d)<br><br><br>
-![Admin- Appointments](https://github.com/user-attachments/assets/6ea434e1-8269-4480-84cc-706f234508eb)<br>
+![Admin- Appointments](https://github.com/user-attachments/assets/6ea434e1-8269-4480-84cc-706f234508eb)<br><br>
+
+#### Doctor Page: <br>
+![image](https://github.com/user-attachments/assets/f198126b-8396-4f4f-aee0-75a693011590)<br><br><br>
+![image](https://github.com/user-attachments/assets/31728e0e-3595-40f3-bf78-aaeb00961125)<br><br>
+
+
 
 #### Tech Stack<br>
 -Frontend: React, Material UI, Tailwind CSS<br>
